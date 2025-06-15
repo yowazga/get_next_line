@@ -1,0 +1,109 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: yowazga <yowazga@student.1337.ma>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/11/15 08:44:31 by yowazga           #+#    #+#             */
+/*   Updated: 2022/11/15 09:52:19 by yowazga          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "get_next_line_bonus.h"
+
+char	*baf_size(int fd, char *buf_over)
+{
+	char	*buffer;
+	int		nr;
+
+	buffer = malloc((BUFFER_SIZE + 1) * sizeof(char ));
+	if (!buffer)
+		return (0);
+	nr = 1;
+	while ((!ft_strchr(buf_over, '\n')) && nr != 0)
+	{
+		nr = read(fd, buffer, BUFFER_SIZE);
+		if (nr == -1)
+		{
+			free(buffer);
+			free(buf_over);
+			return (0);
+		}
+		buffer[nr] = '\0';
+		buf_over = ft_strjoin(buf_over, buffer);
+	}
+	free(buffer);
+	return (buf_over);
+}
+
+char	*cpy_line(char *buf_over)
+{
+	char	*str;
+	int		i;
+
+	i = 0;
+	if (!buf_over[i])
+		return (0);
+	while (buf_over[i] != '\n' && buf_over[i])
+		i++;
+	if (buf_over[i] == '\n')
+		i++;
+	str = malloc(i + 1);
+	if (!str)
+		return (0);
+	i = 0;
+	while (buf_over[i] != '\n' && buf_over[i])
+	{
+		str[i] = buf_over[i];
+		i++;
+	}
+	if (buf_over[i] == '\n')
+		str[i++] = '\n';
+	str[i] = '\0';
+	return (str);
+}
+
+char	*overflow(char *buf_over)
+{
+	char	*str;
+	int		i;
+	int		j;
+
+	i = 0;
+	j = 0;
+	if (buf_over[0] == '\0')
+	{
+		free(buf_over);
+		return (0);
+	}
+	while (buf_over[i] != '\n' && buf_over[i])
+		i++;
+	if (buf_over[i] == '\n')
+		i++;
+	str = malloc(ft_strlen(buf_over) - i + 1);
+	while (buf_over[i])
+	{
+		str[j] = buf_over[i];
+		i++;
+		j++;
+	}
+	str[j] = '\0';
+	free(buf_over);
+	return (str);
+}
+
+char	*get_next_line(int fd)
+{
+	static char	*buf_over[OPEN_MAX];
+	char		*line;
+
+	if (fd < 0 || fd == 1 || fd == 2 || BUFFER_SIZE <= 0)
+		return (0);
+	buf_over[fd] = baf_size(fd, buf_over[fd]);
+	if (!buf_over[fd])
+		return (0);
+	line = cpy_line(buf_over[fd]);
+	buf_over[fd] = overflow(buf_over[fd]);
+	return (line);
+}
